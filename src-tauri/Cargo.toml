@@ -1,0 +1,16 @@
+[package]
+name = "git-diff-pack"
+version = "1.2.0"
+edition = "2021"
+description = "按时间范围预览并打包多个 Git 仓库的文件差异"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+serde = { version = "1", features = ["derive", "rc"] }
+serde_json = "1"
+tempfile = "3"
+zip = { version = "4", default-features = false, features = ["deflate"] }

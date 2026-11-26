@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light" />
+    <title>Git 差异打包工具</title>
+  </head>
+  <body>
+    <header class="app-header">
+      <div class="app-brand"><span class="brand-symbol"><i data-lucide="git-pull-request"></i></span><h1>Git 差异打包工具</h1></div>
+      <div class="git-status" id="git-status" role="status"><span class="status-dot"></span><span id="version">正在检测 Git</span></div>
+    </header>
+    <main class="workspace">
+      <aside class="conditions">
+        <h2 class="panel-title"><i data-lucide="sliders-horizontal"></i>比对条件</h2>
+        <form id="conditions" novalidate>
+          <div class="form-section">
+            <label class="field-title" for="choose-root">项目目录</label>
+            <button type="button" id="choose-root" class="folder-picker">
+              <i data-lucide="folder-open"></i><span id="root-name">选择文件夹</span><i data-lucide="chevron-right"></i>
+            </button>
+            <p class="field-hint" id="root-detail">包含此目录下的所有 Git 仓库</p>
+          </div>
+          <fieldset class="form-section date-section">
+            <legend class="field-title">比对范围</legend>
+            <div class="range-modes" role="group" aria-label="比对方式">
+              <button id="date-mode" type="button" class="selected" aria-pressed="true"><i data-lucide="calendar"></i>按日期</button>
+              <button id="anchor-mode" type="button" aria-pressed="false"><i data-lucide="history"></i>从上次打包</button>
+            </div>
+            <label class="latest-choice" id="latest-choice" hidden><input type="checkbox" id="anchor-latest" checked />截至各分支最新提交</label>
+            <div id="time-fields">
+              <div class="precision" role="group" aria-label="时间精度">
+                <button type="button" class="selected" data-mode="day" aria-pressed="true">整天</button>
+                <button type="button" data-mode="minute" aria-pressed="false">精确到分钟</button>
+              </div>
+              <label class="date-field" id="start-field" for="start-at"><span>开始</span><input type="date" id="start-at" required /></label>
+              <label class="date-field" for="end-at"><span>截至</span><input type="date" id="end-at" required /></label>
+              <p class="field-hint timezone"><i data-lucide="clock-3"></i><span id="local-zone"></span></p>
+            </div>
+          </fieldset>
+          <div class="form-action"><button class="action primary" type="submit" id="scan"><i data-lucide="scan-search"></i><span>预览差异</span></button></div>
+        </form>
+      </aside>
+      <section class="results" aria-labelledby="results-title">
+        <div class="result-header"><span class="title-rule"></span><h2 id="results-title">差异预览</h2><span id="repo-count"></span></div>
+        <div id="notice" class="notice" hidden role="status"></div>
+        <div id="result-body" class="result-body" tabindex="-1"></div>
+        <div id="rebuild-panel" class="rebuild-panel" hidden>
+          <strong>这些分支的历史已更改</strong>
+          <ul id="rebuild-list"></ul>
+          <label class="confirm-choice"><input type="checkbox" id="confirm-rebuild" />确认在导出成功后，用本次结束提交重建以上锚点</label>
+        </div>
+        <footer class="export-bar">
+          <div class="export-info"><span class="archive-icon"><i data-lucide="archive"></i></span><div><strong>ZIP 压缩包</strong><span id="export-count">等待预览</span></div></div>
+          <button id="export" class="action export" type="button" disabled><i data-lucide="download"></i><span>导出 ZIP</span></button>
+        </footer>
+      </section>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

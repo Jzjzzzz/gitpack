@@ -1,0 +1,46 @@
+.diff-view {
+  position: fixed; inset: 0; margin: 0; padding: 0; width: 100%; height: 100%;
+  max-width: none; max-height: none; border: 0; background: #1c201f; color: #dde6e0;
+  color-scheme: dark; overflow: hidden;
+}
+.diff-view[open] { display: flex; flex-direction: column; }
+.dv-toolbar, .dv-heading, .dv-nav, .dv-version { display: flex; align-items: center; }
+.dv-toolbar {
+  flex: none; justify-content: space-between; gap: 16px; height: 54px; padding: 0 16px;
+  border-bottom: 1px solid #3a423d; background: #232a26;
+}
+.dv-heading { min-width: 0; gap: 11px; }
+.dv-heading > svg { box-sizing: content-box; width: 17px; height: 17px; padding: 6px; border-radius: 5px; background: #365747; color: #c2efcf; }
+.dv-title, .dv-repo, .dv-path { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dv-title { font-size: 15px; line-height: 1.4; font-weight: 600; }
+.dv-repo { font-size: 12px; color: #a3b4a9; }
+.dv-nav { flex: none; height: 42px; padding: 0 14px; gap: 3px; background: #262c28; border-bottom: 1px solid #3d453f; }
+.dv-nav .dv-divider { width: 1px; height: 16px; background: #455049; margin: 0 11px; }
+.dv-control {
+  display: inline-grid; place-items: center; flex: none; width: 28px; height: 28px; padding: 0;
+  border: 1px solid transparent; border-radius: 4px; background: transparent; color: #d3ddd6;
+}
+.dv-control svg { width: 16px; height: 16px; }
+.dv-control:enabled:hover { background: #3c4840; border-color: #536157; color: #fff; }
+.dv-control:focus-visible { outline-color: #8bd4af; outline-offset: 1px; }
+.dv-control:disabled { color: #627068; }
+.dv-count { min-width: 80px; text-align: center; font: 12px var(--mono); color: #ccdad0; }
+.dv-versions { flex: none; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); background: #202622; border-bottom: 1px solid #414a45; }
+.dv-version { height: 38px; padding: 0 13px; gap: 8px; min-width: 0; font-size: 12px; }
+.dv-version + .dv-version { border-left: 1px solid #414a45; }
+.dv-version > svg { width: 14px; height: 14px; color: #a4b8aa; }
+.dv-label { flex: none; color: #b8c9bc; }
+.dv-oid { flex: none; color: #e4e9e4; font-family: var(--mono); }
+.dv-path { color: #a8b4ac; font-family: var(--mono); }
+.dv-status { flex: none; padding: 8px 14px; color: #c5d8c9; background: #253429; font-size: 12px; }
+.dv-full-status { flex: 1; display: grid; place-content: center; text-align: center; line-height: 1.8; background: #1c201f; }
+.dv-editor { position: relative; min-height: 0; min-width: 0; flex: 1; }
+.dv-editor .monaco-editor svg { width: initial; height: initial; stroke-width: initial; }
+@media (max-width: 640px) {
+  .dv-toolbar { padding: 0 9px; height: 45px; }
+  .dv-versions .dv-version { padding: 0 7px; gap: 5px; flex-wrap: wrap; align-content: center; height: 51px; }
+  .dv-path { flex-basis: 100%; font-size: 11px; }
+  .dv-nav { padding: 0 5px; }
+  .dv-nav .dv-divider { margin: 0 4px; }
+  .dv-count { min-width: 74px; }
+}

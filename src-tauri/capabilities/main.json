@@ -1,0 +1,6 @@
+{
+  "identifier": "main-window",
+  "description": "允许主窗口选择工作目录和 ZIP 保存位置",
+  "windows": ["main"],
+  "permissions": ["core:default", "dialog:allow-open", "dialog:allow-save"]
+}
