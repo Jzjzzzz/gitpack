@@ -13,6 +13,13 @@ interface Change { kind: Kind; path: string; oldPath: string | null }
 interface Repository { path: string; branch: string; start: string | null; end: string | null; changes: Change[]; rebuildAnchor: boolean }
 interface Preview { id: string; repositories: Repository[]; errors: string[]; fileCount: number }
 interface ExportResult { fileCount: number; anchorError: string | null }
+interface RemoteStatus {
+  state: "synced" | "ahead" | "behind" | "diverged" | "unavailable";
+  upstream: string | null;
+  ahead: number;
+  behind: number;
+  reason: string | null;
+}
 type Precision = "day" | "minute";
 type Busy = "idle" | "choosing" | "scanning" | "exporting";
 
@@ -69,6 +76,9 @@ let revision = 0;
 let busy: Busy = "idle";
 let precision: Precision = "day";
 let fromAnchor = false;
+let remoteCells: HTMLElement[] = [];
+let nextRemoteIndex = 0;
+let activeRemoteChecks = 0;
 
 function localDate(date: Date) {
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -134,6 +144,8 @@ function refreshControls() {
 function resetPreview() {
   revision++;
   snapshot = null;
+  remoteCells = [];
+  nextRemoteIndex = 0;
   rebuildPanel.hidden = true;
   rebuildList.replaceChildren();
   confirmRebuild.checked = false;
@@ -233,6 +245,49 @@ async function showFile(data: Preview, repo: Repository, change: Change, opener:
     openingDiff = false;
   }
 }
+function showRemoteStatus(cell: HTMLElement, status: RemoteStatus) {
+  const upstream = status.upstream || "上游分支";
+  let text: string;
+  switch (status.state) {
+    case "synced": text = `与 ${upstream} 已同步`; break;
+    case "ahead": text = `领先 ${upstream} ${status.ahead} 个提交`; break;
+    case "behind": text = `落后 ${upstream} ${status.behind} 个提交`; break;
+    case "diverged": text = `与 ${upstream} 已分叉，本地独有 ${status.ahead} 个提交，远程独有 ${status.behind} 个提交`; break;
+    case "unavailable": text = "远程状态未核实" + (status.reason ? " · " + status.reason : ""); break;
+  }
+  cell.dataset.state = status.state;
+  cell.replaceChildren();
+  if (status.state === "behind" || status.state === "diverged") {
+    cell.append(icon("alert"));
+    text += "。如需包含远程改动，请手动拉取后重新预览。";
+  }
+  cell.append(document.createTextNode(text));
+}
+
+async function checkRemote(data: Preview, repoIndex: number, cell: HTMLElement) {
+  try {
+    const status = await invoke<RemoteStatus>("check_remote", { id: data.id, repoIndex });
+    if (snapshot === data) showRemoteStatus(cell, status);
+  } catch (error) {
+    if (snapshot === data) {
+      showRemoteStatus(cell, { state: "unavailable", upstream: null, ahead: 0, behind: 0, reason: String(error) });
+    }
+  } finally {
+    activeRemoteChecks--;
+    dispatchRemoteChecks();
+  }
+}
+
+function dispatchRemoteChecks() {
+  const data = snapshot;
+  if (!data) return;
+  while (activeRemoteChecks < 3 && nextRemoteIndex < remoteCells.length) {
+    const index = nextRemoteIndex++;
+    activeRemoteChecks++;
+    void checkRemote(data, index, remoteCells[index]);
+  }
+}
+
 function renderRepository(data: Preview, repo: Repository) {
   const section = element("details", "repository");
   section.open = repo.changes.length > 0;
@@ -251,7 +306,11 @@ function renderRepository(data: Preview, repo: Repository) {
     (repo.start?.slice(0, 8) ?? "空树") + " → " + (repo.end?.slice(0, 8) ?? "空树"));
   commits.title = (repo.start ?? "空树") + " → " + (repo.end ?? "空树");
   meta.append(branch, commits);
-  heading.append(title, meta);
+  const remote = element("div", "remote-status", "正在检查远程分支…");
+  remote.dataset.state = "checking";
+  remote.setAttribute("role", "status");
+  remoteCells.push(remote);
+  heading.append(title, meta, remote);
   summary.append(marker, heading, element("span", "change-count", repo.changes.length + " 项"), icon("chevron-down"));
   section.append(summary);
   if (!repo.changes.length) {
@@ -311,6 +370,7 @@ function renderPreview(data: Preview) {
     const list = element("div", "repositories");
     for (const repo of data.repositories) list.append(renderRepository(data, repo));
     body.append(list);
+    dispatchRemoteChecks();
   }
   if (data.errors.length) {
     const errors = element("div", "error-list");

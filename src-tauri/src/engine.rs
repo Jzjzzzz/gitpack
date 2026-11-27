@@ -68,7 +68,7 @@ pub struct FileDiff {
     pub after_mode: Option<String>,
 }
 
-fn git(repo: Option<&Path>) -> Command {
+pub(crate) fn git(repo: Option<&Path>) -> Command {
     let mut cmd = Command::new("git");
     #[cfg(windows)]
     {

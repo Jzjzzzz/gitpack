@@ -2,6 +2,7 @@
 
 mod anchors;
 mod engine;
+mod remote;
 
 use serde::Serialize;
 use std::path::PathBuf;
@@ -71,6 +72,17 @@ fn saved_preview(state: &PreviewState, id: &str) -> Result<Arc<ScopedPreview>, S
 }
 
 #[tauri::command]
+async fn check_remote(state: State<'_, PreviewState>, id: String, repo_index: usize) -> Result<remote::RemoteStatus, String> {
+    let snapshot = saved_preview(&state, &id)?;
+    tauri::async_runtime::spawn_blocking(move || {
+        let repo = snapshot.preview.repositories.get(repo_index).ok_or("预览中没有此仓库")?;
+        Ok(remote::check(repo))
+    })
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
 async fn file_diff(
     state: State<'_, PreviewState>, id: String, repo_index: usize, change_index: usize,
 ) -> Result<engine::FileDiff, String> {
@@ -93,7 +105,7 @@ fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .manage(PreviewState::default())
-        .invoke_handler(tauri::generate_handler![git_version, scan_range, file_diff, export_zip])
+        .invoke_handler(tauri::generate_handler![git_version, scan_range, check_remote, file_diff, export_zip])
         .run(tauri::generate_context!())
         .expect("桌面应用启动失败");
 }
